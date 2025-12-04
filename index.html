@@ -1,0 +1,1789 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chainsaw Man - Calculadora de Huella Ecológica</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --chainsaw-red: #d32f2f;
+            --chainsaw-dark: #1a1a1a;
+            --chainsaw-light: #f5f5f5;
+            --chainsaw-yellow: #ffd700;
+            --chainsaw-gray: #333333;
+            --glass-dark: rgba(26, 26, 26, 0.75);
+            --glass-light: rgba(255, 255, 255, 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--chainsaw-dark);
+            color: var(--chainsaw-light);
+            line-height: 1.6;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* Fondo con imagen terminacion.jpg */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTglg9tMNpHT045MfaCOUUvQDZlXbb5jvrBLA&s');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.25;
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header */
+        header {
+            text-align: center;
+            padding: 30px 20px;
+            margin-bottom: 30px;
+            border-bottom: 3px solid var(--chainsaw-red);
+            position: relative;
+            background: var(--glass-dark);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-light);
+        }
+        
+        .logo {
+            font-family: 'Bangers', cursive;
+            font-size: 3.5rem;
+            color: var(--chainsaw-red);
+            text-shadow: 3px 3px 0px var(--chainsaw-yellow);
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+        
+        .logo span {
+            color: var(--chainsaw-light);
+            text-shadow: 3px 3px 0px var(--chainsaw-red);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--chainsaw-yellow);
+            font-style: italic;
+        }
+        
+        /* Efecto de hacha animada */
+        .axe-effect {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            font-size: 3rem;
+            color: var(--chainsaw-red);
+            animation: axeSwing 3s ease-in-out infinite;
+            text-shadow: 0 0 10px rgba(211, 47, 47, 0.7);
+            transform-origin: top center;
+        }
+        
+        @keyframes axeSwing {
+            0%, 100% { 
+                transform: rotate(0deg) scale(1); 
+            }
+            25% { 
+                transform: rotate(-15deg) scale(1.1); 
+            }
+            50% { 
+                transform: rotate(0deg) scale(1); 
+            }
+            75% { 
+                transform: rotate(15deg) scale(1.1); 
+            }
+        }
+        
+        /* Secciones principales */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .calculator-section, .results-section, .charts-section {
+            background: var(--glass-dark);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-light);
+        }
+        
+        /* Efecto de borde brillante para las secciones */
+        .calculator-section, .results-section {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .calculator-section::before, .results-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, 
+                transparent, 
+                var(--chainsaw-red), 
+                var(--chainsaw-yellow), 
+                var(--chainsaw-red), 
+                transparent);
+            z-index: 1;
+        }
+        
+        .section-title {
+            font-family: 'Bangers', cursive;
+            font-size: 2rem;
+            color: var(--chainsaw-yellow);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(211, 47, 47, 0.5);
+            letter-spacing: 1px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* Formulario */
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--chainsaw-light);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        
+        .input-with-icon {
+            position: relative;
+        }
+        
+        .input-with-icon i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--chainsaw-red);
+            text-shadow: 0 0 5px rgba(211, 47, 47, 0.7);
+        }
+        
+        .input-with-icon input, .input-with-icon select {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            background: rgba(51, 51, 51, 0.7);
+            border: 2px solid rgba(211, 47, 47, 0.5);
+            border-radius: 8px;
+            color: var(--chainsaw-light);
+            font-size: 1rem;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+        
+        .input-with-icon input:focus, .input-with-icon select:focus {
+            outline: none;
+            border-color: var(--chainsaw-yellow);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            background: rgba(51, 51, 51, 0.9);
+        }
+        
+        /* Placeholder traducido */
+        .input-with-icon input::placeholder {
+            color: #aaa;
+            font-style: italic;
+        }
+        
+        /* Sliders personalizados */
+        .slider-container {
+            padding: 10px 0;
+        }
+        
+        .slider-container input[type="range"] {
+            width: 100%;
+            height: 10px;
+            -webkit-appearance: none;
+            background: rgba(51, 51, 51, 0.7);
+            border-radius: 5px;
+            outline: none;
+        }
+        
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--chainsaw-red);
+            cursor: pointer;
+            border: 2px solid var(--chainsaw-yellow);
+            box-shadow: 0 0 5px rgba(211, 47, 47, 0.7);
+        }
+        
+        .slider-container input[type="range"]::-moz-range-thumb {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--chainsaw-red);
+            cursor: pointer;
+            border: 2px solid var(--chainsaw-yellow);
+            box-shadow: 0 0 5px rgba(211, 47, 47, 0.7);
+        }
+        
+        .range-value {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            color: var(--chainsaw-yellow);
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        
+        /* Botón de cálculo con icono de hacha */
+        .calculate-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--chainsaw-red), #b71c1c);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Bangers', cursive;
+            font-size: 1.5rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 15px rgba(211, 47, 47, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .calculate-btn:hover {
+            background: linear-gradient(135deg, var(--chainsaw-yellow), #ffab00);
+            color: var(--chainsaw-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 215, 0, 0.5);
+        }
+        
+        .calculate-btn:active {
+            transform: translateY(0);
+        }
+        
+        /* Resultados */
+        .result-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .result-card {
+            background: rgba(51, 51, 51, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid rgba(211, 47, 47, 0.3);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .result-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--chainsaw-yellow);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .result-card h3 {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            color: var(--chainsaw-yellow);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        
+        .result-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--chainsaw-red);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .result-unit {
+            font-size: 0.9rem;
+            color: var(--chainsaw-light);
+        }
+        
+        /* Tabs para períodos de tiempo */
+        .period-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: rgba(51, 51, 51, 0.5);
+            border: 1px solid rgba(211, 47, 47, 0.3);
+        }
+        
+        .period-tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            background: none;
+            border: none;
+            color: var(--chainsaw-light);
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Bangers', cursive;
+            letter-spacing: 1px;
+        }
+        
+        .period-tab.active {
+            background: var(--chainsaw-red);
+            color: var(--chainsaw-yellow);
+        }
+        
+        .period-tab:hover:not(.active) {
+            background: rgba(211, 47, 47, 0.3);
+        }
+        
+        /* Resultados por período */
+        .period-content {
+            display: none;
+            animation: fadeIn 0.5s ease forwards;
+        }
+        
+        .period-content.active {
+            display: block;
+        }
+        
+        /* Períodos dentro de las tarjetas */
+        .time-periods {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 10px;
+        }
+        
+        .period {
+            text-align: center;
+        }
+        
+        .period-value {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--chainsaw-yellow);
+        }
+        
+        .period-label {
+            font-size: 0.8rem;
+            color: #aaa;
+            margin-top: 3px;
+        }
+        
+        /* Sección de comparación */
+        .comparison-section {
+            background: var(--glass-dark);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-light);
+        }
+        
+        .comparison-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, 
+                transparent, 
+                var(--chainsaw-yellow), 
+                var(--chainsaw-red), 
+                var(--chainsaw-yellow), 
+                transparent);
+            z-index: 1;
+        }
+        
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+        
+        @media (max-width: 1100px) {
+            .comparison-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .comparison-card {
+            background: rgba(51, 51, 51, 0.7);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            border-top: 4px solid;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .comparison-card.co2 { border-top-color: #f44336; }
+        .comparison-card.agua { border-top-color: #2196f3; }
+        .comparison-card.energia { border-top-color: #ff9800; }
+        .comparison-card.basura { border-top-color: #4caf50; }
+        
+        .comparison-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .comparison-card.co2 .comparison-value { color: #f44336; }
+        .comparison-card.agua .comparison-value { color: #2196f3; }
+        .comparison-card.energia .comparison-value { color: #ff9800; }
+        .comparison-card.basura .comparison-value { color: #4caf50; }
+        
+        .comparison-label {
+            font-size: 0.9rem;
+            color: var(--chainsaw-light);
+            margin-bottom: 5px;
+        }
+        
+        .comparison-difference {
+            font-size: 0.9rem;
+            margin-top: 5px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+        
+        .positive {
+            background-color: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+        }
+        
+        .negative {
+            background-color: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+        }
+        
+        /* Recomendaciones con iconos de hacha */
+        .recommendations {
+            margin-top: 25px;
+        }
+        
+        .recommendation-list {
+            list-style-type: none;
+        }
+        
+        .recommendation-list li {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .recommendation-list li:hover {
+            background: rgba(255, 255, 255, 0.05);
+            padding-left: 10px;
+            border-radius: 5px;
+        }
+        
+        .recommendation-list li:before {
+            content: "🪓";
+            margin-right: 10px;
+            color: var(--chainsaw-red);
+            text-shadow: 0 0 5px rgba(211, 47, 47, 0.7);
+            font-size: 1.2rem;
+        }
+        
+        /* Gráficas */
+        .charts-section {
+            margin-bottom: 40px;
+        }
+        
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .chart-box {
+            background: rgba(51, 51, 51, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 10px;
+            padding: 20px;
+            height: 300px;
+            border: 1px solid rgba(211, 47, 47, 0.3);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .chart-title {
+            text-align: center;
+            margin-bottom: 15px;
+            color: var(--chainsaw-yellow);
+            font-family: 'Bangers', cursive;
+            font-size: 1.5rem;
+            letter-spacing: 1px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* Pie de página */
+        footer {
+            text-align: center;
+            padding: 25px 20px;
+            margin-top: 30px;
+            border-top: 3px solid var(--chainsaw-red);
+            color: var(--chainsaw-light);
+            font-size: 0.9rem;
+            background: var(--glass-dark);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-light);
+        }
+        
+        .chainsaw-icon {
+            color: var(--chainsaw-red);
+            margin: 0 5px;
+            text-shadow: 0 0 5px rgba(211, 47, 47, 0.7);
+        }
+        
+        /* Animación para resultados */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.8s ease forwards;
+        }
+        
+        /* Estilo para campos de texto */
+        .input-group .hint {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 5px;
+            font-style: italic;
+        }
+        
+        /* Efecto de vidrio esmerilado para el botón de reinicio */
+        #reset-progress {
+            background: rgba(51, 51, 51, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(211, 47, 47, 0.5);
+            color: var(--chainsaw-light);
+        }
+        
+        #reset-progress:hover {
+            background: rgba(211, 47, 47, 0.7);
+            border-color: var(--chainsaw-yellow);
+        }
+        
+        /* Efecto de partículas en el fondo */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+        
+        .particle {
+            position: absolute;
+            background: var(--chainsaw-red);
+            border-radius: 50%;
+            opacity: 0.1;
+        }
+        
+        /* Indicador de nivel de impacto */
+        .impact-level {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-top: 10px;
+            font-family: 'Bangers', cursive;
+            letter-spacing: 1px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        .low { 
+            background-color: #4caf50; 
+            color: white; 
+            border: 2px solid #2e7d32;
+        }
+        .medium { 
+            background-color: #ff9800; 
+            color: white; 
+            border: 2px solid #ef6c00;
+        }
+        .high { 
+            background-color: #f44336; 
+            color: white; 
+            border: 2px solid #c62828;
+        }
+        
+        /* Slider de porcentaje de reciclaje */
+        .percentage-slider {
+            width: 100%;
+            margin: 15px 0;
+        }
+        
+        .percentage-value {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--chainsaw-yellow);
+            margin-top: 5px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        
+        .recycling-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            color: var(--chainsaw-light);
+            font-size: 0.8rem;
+        }
+        
+        /* Iconos de transporte */
+        .transport-icon {
+            font-size: 1.2rem;
+            margin-right: 8px;
+            color: var(--chainsaw-yellow);
+        }
+        
+        /* Hacha flotante en el botón de cálculo */
+        .axe-button {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.8rem;
+            color: var(--chainsaw-yellow);
+            animation: axeFloat 2s ease-in-out infinite;
+        }
+        
+        @keyframes axeFloat {
+            0%, 100% { 
+                transform: translateY(-50%) rotate(0deg); 
+            }
+            50% { 
+                transform: translateY(-60%) rotate(10deg); 
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Partículas de fondo -->
+    <div class="particles" id="particles"></div>
+    
+    <div class="container">
+        <header>
+            <div class="axe-effect">
+                ╾━╤デ╦︻
+            </div>
+            <h1 class="logo">EcoSaw <span>Calculato</span></h1>
+            <p class="subtitle">Calcula tu huella ecológica diaria, semanal y mensual</p>
+        </header>
+        
+        <div class="main-content">
+            <section class="calculator-section">
+                <h2 class="section-title">Calcula tu impacto</h2>
+                <form id="footprint-form">
+                    <div class="input-group">
+                        <label for="transporte"><i class="fas fa-car"></i> Transporte (km semanales en coche)</label>
+                        <div class="slider-container">
+                            <input type="range" id="transporte" min="0" max="500" value="150" class="slider">
+                            <div class="range-value">
+                                <span>0 km</span>
+                                <span id="transporte-value">150 km</span>
+                                <span>500 km</span>
+                            </div>
+                        </div>
+                        <div class="hint">Promedio en España: 200 km semanales por hogar</div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="transporte-principal"><i class="fas fa-bus"></i> Transporte principal</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-car"></i>
+                            <select id="transporte-principal" required>
+                                <option value="1.5"><i class="fas fa-car"></i> Automóvil (solo conductor)</option>
+                                <option value="1.2" selected><i class="fas fa-car-side"></i> Automóvil (compartido)</option>
+                                <option value="0.8"><i class="fas fa-bus"></i> Transporte público</option>
+                                <option value="0.3"><i class="fas fa-bicycle"></i> Bicicleta o caminar</option>
+                                <option value="1.8"><i class="fas fa-motorcycle"></i> Moto o scooter</option>
+                                <option value="0.0"><i class="fas fa-home"></i> Teletrabajo</option>
+                            </select>
+                        </div>
+                        <div class="hint">Selecciona tu medio de transporte más frecuente</div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="energia"><i class="fas fa-bolt"></i> Consumo de energía (kWh mensuales)</label>
+                        <div class="slider-container">
+                            <input type="range" id="energia" min="0" max="2000" value="800" class="slider">
+                            <div class="range-value">
+                                <span>0 kWh</span>
+                                <span id="energia-value">800 kWh</span>
+                                <span>2000 kWh</span>
+                            </div>
+                        </div>
+                        <div class="hint">El hogar español promedio consume unos 270 kWh mensuales</div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="agua"><i class="fas fa-tint"></i> Consumo de agua (litros diarios)</label>
+                        <div class="slider-container">
+                            <input type="range" id="agua" min="0" max="500" value="200" class="slider">
+                            <div class="range-value">
+                                <span>0 L</span>
+                                <span id="agua-value">200 L</span>
+                                <span>500 L</span>
+                            </div>
+                        </div>
+                        <div class="hint">1 m³ = 1000 litros. Consumo promedio en España: 133 litros/persona/día</div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="basura"><i class="fas fa-trash"></i> Basura generada (kg semanales)</label>
+                        <div class="slider-container">
+                            <input type="range" id="basura" min="0" max="20" value="7" class="slider">
+                            <div class="range-value">
+                                <span>0 kg</span>
+                                <span id="basura-value">7 kg</span>
+                                <span>20 kg</span>
+                            </div>
+                        </div>
+                        <div class="hint">Promedio en España: 1.3 kg/persona/día (incluyendo reciclaje)</div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="reciclaje"><i class="fas fa-recycle"></i> Porcentaje de reciclaje</label>
+                        <div class="slider-container">
+                            <input type="range" id="reciclaje" min="0" max="100" value="50" class="slider">
+                            <div class="range-value">
+                                <span>0%</span>
+                                <span id="reciclaje-value">50%</span>
+                                <span>100%</span>
+                            </div>
+                        </div>
+                        <div class="recycling-indicator">
+                            <span>Nada</span>
+                            <span>Moderado</span>
+                            <span>Excelente</span>
+                        </div>
+                        <div class="hint">¿Qué porcentaje de tus residuos separas para reciclar?</div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="dieta"><i class="fas fa-utensils"></i> Tipo de dieta</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-utensils"></i>
+                            <select id="dieta" required>
+                                <option value="1">Carnívora (alta en carne)</option>
+                                <option value="2" selected>Omnívora (equilibrada)</option>
+                                <option value="3">Vegetariana</option>
+                                <option value="4">Vegana</option>
+                            </select>
+                        </div>
+                        <div class="hint">Tu dieta influye significativamente en tu huella de carbono</div>
+                    </div>
+                    
+                    <button type="submit" class="calculate-btn">
+                        <i class="fas fa-calculator"></i> CALCULAR IMPACTO
+                        <span class="axe-button">🔪</span>
+                    </button>
+                </form>
+            </section>
+            
+            <section class="results-section">
+                <h2 class="section-title">Tu impacto ambiental</h2>
+                
+                <!-- Tabs para períodos de tiempo -->
+                <div class="period-tabs">
+                    <button class="period-tab active" data-period="daily">Diario</button>
+                    <button class="period-tab" data-period="weekly">Semanal</button>
+                    <button class="period-tab" data-period="monthly">Mensual</button>
+                </div>
+                
+                <!-- Contenido Diario -->
+                <div class="period-content active" id="daily-results">
+                    <div class="result-cards" id="daily-container">
+                        <div class="result-card fade-in">
+                            <h3>Emisiones de CO₂</h3>
+                            <div class="result-value" id="co2-daily-value">0</div>
+                            <div class="time-periods">
+                                <div class="period">
+                                    <div class="period-value" id="co2-daily-breakdown">0</div>
+                                    <div class="period-label">Diario</div>
+                                </div>
+                            </div>
+                            <div class="result-unit">kg/día</div>
+                        </div>
+                        
+                        <div class="result-card fade-in">
+                            <h3>Consumo de agua</h3>
+                            <div class="result-value" id="agua-daily-value">0</div>
+                            <div class="time-periods">
+                                <div class="period">
+                                    <div class="period-value" id="agua-daily-breakdown">0</div>
+                                    <div class="period-label">Diario</div>
+                                </div>
+                            </div>
+                            <div class="result-unit">litros/día</div>
+                        </div>
+                        
+                        <div class="result-card fade-in">
+                            <h3>Consumo energético</h3>
+                            <div class="result-value" id="energia-daily-value">0</div>
+                            <div class="time-periods">
+                                <div class="period">
+                                    <div class="period-value" id="energia-daily-breakdown">0</div>
+                                    <div class="period-label">Diario</div>
+                                </div>
+                            </div>
+                            <div class="result-unit">kWh/día</div>
+                        </div>
+                        
+                        <div class="result-card fade-in">
+                            <h3>Basura generada</h3>
+                            <div class="result-value" id="basura-daily-value">0</div>
+                            <div class="time-periods">
+                                <div class="period">
+                                    <div class="period-value" id="basura-daily-breakdown">0</div>
+                                    <div class="period-label">Diario</div>
+                                </div>
+                            </div>
+                            <div class="result-unit">kg/día</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Contenido Semanal -->
+                <div class="period-content" id="weekly-results">
+                    <div class="result-cards" id="weekly-container">
+                        <div class="result-card fade-in">
+                            <h3>Emisiones de CO₂</h3>
+                            <div class="result-value" id="co2-weekly-value">0</div>
+                            <div class="time-periods">
+                                <div class="period">
+                                    <div class="period-value" id="co2-weekly-breakdown">0</div>
+                                    <div class="period-label">Semanal</div>
+                                </div>
+                            </div>
+                            <div class="result-unit">kg/semana</div>
+                        </div>
+                        
+                        <div class="result-card fade-in">
+                            <h3>Consumo de agua</h3>
+                            <div class="result-value" id="agua-weekly-value">0</div>
+                            <div class="time-periods">
+                                <div class="period">
+                                    <div class="period-value" id="agua-weekly-breakdown">0</div>
+                                    <div class="period-label">Semanal</div>
+                                </div>
+                            </div>
+                            <div class="result-unit">litros/semana</div>
+                        </div>
+                        
+                        <div class="result-card fade-in">
+                            <h3>Consumo energético</h3>
+                            <div class="result-value" id="energia-weekly-value">0</div>
+                            <div class="time-periods">
+                                <div class="period">
+                                    <div class="period-value" id="energia-weekly-breakdown">0</div>
+                                    <div class="period-label">Semanal</div>
+                                </div>
+                            </div>
+                            <div class="result-unit">kWh/semana</div>
+                        </div>
+                        
+                        <div class="result-card fade-in">
+                            <h3>Basura generada</h3>
+                            <div class="result-value" id="basura-weekly-value">0</div>
+                            <div class="time-periods">
+                                <div class="period">
+                                    <div class="period-value" id="basura-weekly-breakdown">0</div>
+                                    <div class="period-label">Semanal</div>
+                                </div>
+                            </div>
+                            <div class="result-unit">kg/semana</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Contenido Mensual -->
+                <div class="period-content" id="monthly-results">
+                    <div class="result-cards" id="monthly-container">
+                        <div class="result-card fade-in">
+                            <h3>Emisiones de CO₂</h3>
+                            <div class="result-value" id="co2-monthly-value">0</div>
+                            <div class="time-periods">
+                                <div class="period">
+                                    <div class="period-value" id="co2-monthly-breakdown">0</div>
+                                    <div class="period-label">Mensual</div>
+                                </div>
+                            </div>
+                            <div class="result-unit">kg/mes</div>
+                        </div>
+                        
+                        <div class="result-card fade-in">
+                            <h3>Consumo de agua</h3>
+                            <div class="result-value" id="agua-monthly-value">0</div>
+                            <div class="time-periods">
+                                <div class="period">
+                                    <div class="period-value" id="agua-monthly-breakdown">0</div>
+                                    <div class="period-label">Mensual</div>
+                                </div>
+                            </div>
+                            <div class="result-unit">litros/mes</div>
+                        </div>
+                        
+                        <div class="result-card fade-in">
+                            <h3>Consumo energético</h3>
+                            <div class="result-value" id="energia-monthly-value">0</div>
+                            <div class="time-periods">
+                                <div class="period">
+                                    <div class="period-value" id="energia-monthly-breakdown">0</div>
+                                    <div class="period-label">Mensual</div>
+                                </div>
+                            </div>
+                            <div class="result-unit">kWh/mes</div>
+                        </div>
+                        
+                        <div class="result-card fade-in">
+                            <h3>Basura generada</h3>
+                            <div class="result-value" id="basura-monthly-value">0</div>
+                            <div class="time-periods">
+                                <div class="period">
+                                    <div class="period-value" id="basura-monthly-breakdown">0</div>
+                                    <div class="period-label">Mensual</div>
+                                </div>
+                            </div>
+                            <div class="result-unit">kg/mes</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Indicador de nivel de impacto -->
+                <div id="impacto-total" style="text-align: center; margin-top: 20px;">
+                    <h3 style="display: inline-block; margin-right: 10px;">Nivel de Impacto:</h3>
+                    <span id="impact-level" class="impact-level low">BAJO</span>
+                </div>
+                
+                <!-- Eficiencia de reciclaje -->
+                <div id="recycling-efficiency" style="text-align: center; margin-top: 15px; padding: 10px; background: rgba(51, 51, 51, 0.5); border-radius: 8px;">
+                    <h4 style="color: var(--chainsaw-yellow); margin-bottom: 5px;">Eficiencia de reciclaje: <span id="recycling-percentage">50%</span></h4>
+                    <p style="color: #ddd; font-size: 0.9rem;">
+                        <span id="waste-reduced">0 kg</span> de basura reducida gracias al reciclaje
+                    </p>
+                </div>
+            </section>
+        </div>
+        
+        <!-- Sección de comparación -->
+        <section class="comparison-section">
+            <h2 class="section-title">Comparación de Consumos</h2>
+            <p style="margin-bottom: 20px; color: #ddd; text-align: center;">Compara tu consumo en los diferentes períodos de tiempo</p>
+            
+            <div class="comparison-grid">
+                <div class="comparison-card co2">
+                    <div class="comparison-label">CO₂ Diario</div>
+                    <div class="comparison-value" id="comparison-co2-daily">0 kg</div>
+                    <div class="comparison-label">CO₂ Semanal</div>
+                    <div class="comparison-value" id="comparison-co2-weekly">0 kg</div>
+                    <div class="comparison-label">CO₂ Mensual</div>
+                    <div class="comparison-value" id="comparison-co2-monthly">0 kg</div>
+                    <div class="comparison-difference" id="comparison-co2-diff">--</div>
+                </div>
+                
+                <div class="comparison-card agua">
+                    <div class="comparison-label">Agua Diaria</div>
+                    <div class="comparison-value" id="comparison-agua-daily">0 L</div>
+                    <div class="comparison-label">Agua Semanal</div>
+                    <div class="comparison-value" id="comparison-agua-weekly">0 L</div>
+                    <div class="comparison-label">Agua Mensual</div>
+                    <div class="comparison-value" id="comparison-agua-monthly">0 L</div>
+                    <div class="comparison-difference" id="comparison-agua-diff">--</div>
+                </div>
+                
+                <div class="comparison-card energia">
+                    <div class="comparison-label">Energía Diaria</div>
+                    <div class="comparison-value" id="comparison-energia-daily">0 kWh</div>
+                    <div class="comparison-label">Energía Semanal</div>
+                    <div class="comparison-value" id="comparison-energia-weekly">0 kWh</div>
+                    <div class="comparison-label">Energía Mensual</div>
+                    <div class="comparison-value" id="comparison-energia-monthly">0 kWh</div>
+                    <div class="comparison-difference" id="comparison-energia-diff">--</div>
+                </div>
+                
+                <div class="comparison-card basura">
+                    <div class="comparison-label">Basura Diaria</div>
+                    <div class="comparison-value" id="comparison-basura-daily">0 kg</div>
+                    <div class="comparison-label">Basura Semanal</div>
+                    <div class="comparison-value" id="comparison-basura-weekly">0 kg</div>
+                    <div class="comparison-label">Basura Mensual</div>
+                    <div class="comparison-value" id="comparison-basura-monthly">0 kg</div>
+                    <div class="comparison-difference" id="comparison-basura-diff">--</div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="charts-section">
+            <h2 class="section-title">Gráficas de progreso</h2>
+            <div class="charts-container">
+                <div class="chart-box">
+                    <h3 class="chart-title">Progreso semanal</h3>
+                    <canvas id="weekly-chart"></canvas>
+                </div>
+                
+                <div class="chart-box">
+                    <h3 class="chart-title">Progreso mensual</h3>
+                    <canvas id="monthly-chart"></canvas>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button id="reset-progress" class="calculate-btn" style="width: auto; padding: 10px 20px; font-size: 1.2rem;">
+                    <i class="fas fa-redo"></i> Reiniciar Progreso
+                    <span class="axe-button">🪚</span>
+                </button>
+            </div>
+        </section>
+        
+        <section class="recommendations-section">
+            <div class="calculator-section">
+                <h3 class="section-title">Recomendaciones para reducir tu impacto</h3>
+                <ul class="recommendation-list" id="recommendations-list">
+                    <li>Reducir el consumo eléctrico apagando dispositivos en standby</li>
+                    <li>Utilizar transporte público o bicicleta al menos 2 días a la semana</li>
+                    <li>Implementar un sistema de reciclaje en casa</li>
+                    <li>Reducir el tiempo de ducha a 5 minutos</li>
+                </ul>
+            </div>
+        </section>
+        
+        <footer>
+            <p>
+                Calculadora de Huella Ecológica  
+                <span class="chainsaw-icon">▄︻デ══━一💥</span> 
+                | Corta con el impacto ambiental
+            </p>
+            <p>© 2023 - Todos los derechos reservados</p>
+        </footer>
+    </div>
+
+    <script>
+        // Variables globales para almacenar los resultados
+        let resultados = {
+            co2: { diario: 0, semanal: 0, mensual: 0 },
+            agua: { diario: 0, semanal: 0, mensual: 0 },
+            energia: { diario: 0, semanal: 0, mensual: 0 },
+            basura: { diario: 0, semanal: 0, mensual: 0 },
+            basuraSinReciclar: { diario: 0, semanal: 0, mensual: 0 }
+        };
+        
+        // Datos iniciales para las gráficas
+        const weeklyData = {
+            labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+            datasets: [{
+                label: 'CO₂ (kg)',
+                data: [12, 19, 8, 15, 12, 18, 10],
+                backgroundColor: 'rgba(211, 47, 47, 0.7)',
+                borderColor: 'rgba(211, 47, 47, 1)',
+                borderWidth: 2
+            }, {
+                label: 'Agua (L)',
+                data: [200, 180, 220, 190, 210, 250, 230],
+                backgroundColor: 'rgba(0, 150, 255, 0.7)',
+                borderColor: 'rgba(0, 150, 255, 1)',
+                borderWidth: 2
+            }]
+        };
+        
+        const monthlyData = {
+            labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+            datasets: [{
+                label: 'CO₂ (kg)',
+                data: [420, 380, 400, 350, 320, 300],
+                backgroundColor: 'rgba(211, 47, 47, 0.7)',
+                borderColor: 'rgba(211, 47, 47, 1)',
+                borderWidth: 2,
+                fill: true
+            }, {
+                label: 'Energía (kWh)',
+                data: [320, 310, 300, 290, 280, 270],
+                backgroundColor: 'rgba(255, 215, 0, 0.7)',
+                borderColor: 'rgba(255, 215, 0, 1)',
+                borderWidth: 2,
+                fill: true
+            }]
+        };
+        
+        // Configuración común para las gráficas
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#f5f5f5',
+                        font: {
+                            size: 12
+                        }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(26, 26, 26, 0.9)',
+                    titleColor: '#ffd700',
+                    bodyColor: '#f5f5f5',
+                    borderColor: '#d32f2f',
+                    borderWidth: 1,
+                    padding: 12,
+                    cornerRadius: 8
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    },
+                    ticks: {
+                        color: '#f5f5f5'
+                    }
+                },
+                x: {
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    },
+                    ticks: {
+                        color: '#f5f5f5'
+                    }
+                }
+            }
+        };
+        
+        // Inicializar gráficas
+        let weeklyChart, monthlyChart;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar gráficas
+            const weeklyCtx = document.getElementById('weekly-chart').getContext('2d');
+            weeklyChart = new Chart(weeklyCtx, {
+                type: 'bar',
+                data: weeklyData,
+                options: chartOptions
+            });
+            
+            const monthlyCtx = document.getElementById('monthly-chart').getContext('2d');
+            monthlyChart = new Chart(monthlyCtx, {
+                type: 'line',
+                data: monthlyData,
+                options: chartOptions
+            });
+            
+            // Actualizar valores de los sliders
+            document.querySelectorAll('.slider').forEach(slider => {
+                const valueId = slider.id + '-value';
+                const valueElement = document.getElementById(valueId);
+                
+                // Establecer valor inicial
+                if(valueElement) {
+                    if(slider.id === 'basura') {
+                        valueElement.textContent = slider.value + ' kg';
+                    } else if(slider.id === 'transporte') {
+                        valueElement.textContent = slider.value + ' km';
+                    } else if(slider.id === 'energia') {
+                        valueElement.textContent = slider.value + ' kWh';
+                    } else if(slider.id === 'agua') {
+                        valueElement.textContent = slider.value + ' L';
+                    } else if(slider.id === 'reciclaje') {
+                        valueElement.textContent = slider.value + '%';
+                        document.getElementById('recycling-percentage').textContent = slider.value + '%';
+                    }
+                }
+                
+                // Actualizar cuando se mueve el slider
+                slider.addEventListener('input', function() {
+                    if(valueElement) {
+                        if(slider.id === 'basura') {
+                            valueElement.textContent = slider.value + ' kg';
+                        } else if(slider.id === 'transporte') {
+                            valueElement.textContent = slider.value + ' km';
+                        } else if(slider.id === 'energia') {
+                            valueElement.textContent = slider.value + ' kWh';
+                        } else if(slider.id === 'agua') {
+                            valueElement.textContent = slider.value + ' L';
+                        } else if(slider.id === 'reciclaje') {
+                            valueElement.textContent = slider.value + '%';
+                            document.getElementById('recycling-percentage').textContent = slider.value + '%';
+                        }
+                    }
+                });
+            });
+            
+            // Manejar pestañas de período de tiempo
+            document.querySelectorAll('.period-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Remover clase active de todas las pestañas
+                    document.querySelectorAll('.period-tab').forEach(t => {
+                        t.classList.remove('active');
+                    });
+                    
+                    // Añadir clase active a la pestaña clickeada
+                    this.classList.add('active');
+                    
+                    // Ocultar todos los contenidos
+                    document.querySelectorAll('.period-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    // Mostrar el contenido correspondiente
+                    const period = this.getAttribute('data-period');
+                    document.getElementById(`${period}-results`).classList.add('active');
+                });
+            });
+            
+            // Calcular huella inicial
+            calculateFootprint();
+            
+            // Configurar botón de reinicio
+            document.getElementById('reset-progress').addEventListener('click', function() {
+                if (confirm("¿Estás seguro de que quieres reiniciar tu progreso? Se perderán todos los datos históricos.")) {
+                    resetCharts();
+                }
+            });
+            
+            // Crear partículas de fondo
+            createParticles();
+        });
+        
+        // Crear partículas flotantes
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 30;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                // Tamaño aleatorio entre 2px y 8px
+                const size = Math.random() * 6 + 2;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                
+                // Posición aleatoria
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                
+                // Color aleatorio (rojo, amarillo o blanco)
+                const colors = ['#d32f2f', '#ffd700', '#ffffff'];
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                particle.style.backgroundColor = color;
+                
+                // Opacidad aleatoria
+                particle.style.opacity = Math.random() * 0.15 + 0.05;
+                
+                // Animación
+                const duration = Math.random() * 20 + 10;
+                const delay = Math.random() * 5;
+                particle.style.animation = `float ${duration}s infinite ${delay}s linear`;
+                
+                // Añadir estilo de animación flotante
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes float {
+                        0% {
+                            transform: translate(0, 0) rotate(0deg);
+                        }
+                        25% {
+                            transform: translate(${Math.random() * 100 - 50}px, ${Math.random() * 100 - 50}px) rotate(90deg);
+                        }
+                        50% {
+                            transform: translate(${Math.random() * 100 - 50}px, ${Math.random() * 100 - 50}px) rotate(180deg);
+                        }
+                        75% {
+                            transform: translate(${Math.random() * 100 - 50}px, ${Math.random() * 100 - 50}px) rotate(270deg);
+                        }
+                        100% {
+                            transform: translate(0, 0) rotate(360deg);
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+        
+        // Manejar el envío del formulario
+        document.getElementById('footprint-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            calculateFootprint();
+        });
+        
+        // Función para calcular la huella ecológica
+        function calculateFootprint() {
+            // Obtener valores del formulario
+            const transporte = parseFloat(document.getElementById('transporte').value) || 0;
+            const transportePrincipal = parseFloat(document.getElementById('transporte-principal').value) || 1.2;
+            const energia = parseFloat(document.getElementById('energia').value) || 0;
+            const agua = parseFloat(document.getElementById('agua').value) || 0;
+            const basura = parseFloat(document.getElementById('basura').value) || 0;
+            const reciclaje = parseFloat(document.getElementById('reciclaje').value) || 50;
+            const dieta = parseFloat(document.getElementById('dieta').value) || 2;
+            
+            // Factores de conversión (valores aproximados)
+            const factorCO2Transporte = 0.12; // kg CO2 por km
+            const factorCO2Energia = 0.4; // kg CO2 por kWh
+            const factorCO2Dieta = [30, 20, 10, 5]; // kg CO2 semanales según tipo de dieta
+            
+            const factorAguaDieta = [5000, 3500, 2500, 2000]; // litros semanales según tipo de dieta
+            
+            // Calcular valores SEMANALES (base)
+            const co2Transporte = transporte * factorCO2Transporte * transportePrincipal; // Semanal (ajustado por tipo de transporte)
+            const co2Energia = (energia / 4.3) * factorCO2Energia; // Convertir mensual a semanal
+            const co2Dieta = factorCO2Dieta[dieta - 1]; // Semanal
+            const co2Semanal = co2Transporte + co2Energia + co2Dieta;
+            
+            const aguaSemanal = (agua * 7) + factorAguaDieta[dieta - 1]; // Semanal
+            
+            const energiaSemanal = energia / 4.3; // Convertir mensual a semanal
+            
+            // Basura con ajuste por reciclaje
+            const basuraTotalSemanal = basura; // Semanal
+            const basuraRecicladaSemanal = basuraTotalSemanal * (reciclaje / 100);
+            const basuraSinReciclarSemanal = basuraTotalSemanal - basuraRecicladaSemanal;
+            
+            // Calcular valores DIARIOS (dividir semanal entre 7)
+            const co2Diario = co2Semanal / 7;
+            const aguaDiario = aguaSemanal / 7;
+            const energiaDiario = energiaSemanal / 7;
+            const basuraDiario = basuraTotalSemanal / 7;
+            const basuraSinReciclarDiario = basuraSinReciclarSemanal / 7;
+            
+            // Calcular valores MENSUALES (multiplicar semanal por 4.3)
+            const co2Mensual = co2Semanal * 4.3;
+            const aguaMensual = aguaSemanal * 4.3;
+            const energiaMensual = energia; // Ya es mensual
+            const basuraMensual = basuraTotalSemanal * 4.3;
+            const basuraSinReciclarMensual = basuraSinReciclarSemanal * 4.3;
+            
+            // Almacenar resultados en la variable global
+            resultados.co2 = {
+                diario: co2Diario,
+                semanal: co2Semanal,
+                mensual: co2Mensual
+            };
+            
+            resultados.agua = {
+                diario: aguaDiario,
+                semanal: aguaSemanal,
+                mensual: aguaMensual
+            };
+            
+            resultados.energia = {
+                diario: energiaDiario,
+                semanal: energiaSemanal,
+                mensual: energiaMensual
+            };
+            
+            resultados.basura = {
+                diario: basuraDiario,
+                semanal: basuraTotalSemanal,
+                mensual: basuraMensual
+            };
+            
+            resultados.basuraSinReciclar = {
+                diario: basuraSinReciclarDiario,
+                semanal: basuraSinReciclarSemanal,
+                mensual: basuraSinReciclarMensual
+            };
+            
+            // Actualizar resultados en la interfaz - DIARIOS
+            document.getElementById('co2-daily-value').textContent = co2Diario.toFixed(2);
+            document.getElementById('co2-daily-breakdown').textContent = co2Diario.toFixed(2) + ' kg';
+            
+            document.getElementById('agua-daily-value').textContent = Math.round(aguaDiario);
+            document.getElementById('agua-daily-breakdown').textContent = Math.round(aguaDiario) + ' L';
+            
+            document.getElementById('energia-daily-value').textContent = energiaDiario.toFixed(2);
+            document.getElementById('energia-daily-breakdown').textContent = energiaDiario.toFixed(2) + ' kWh';
+            
+            document.getElementById('basura-daily-value').textContent = basuraDiario.toFixed(2);
+            document.getElementById('basura-daily-breakdown').textContent = basuraSinReciclarDiario.toFixed(2) + ' kg';
+            
+            // Actualizar resultados en la interfaz - SEMANALES
+            document.getElementById('co2-weekly-value').textContent = co2Semanal.toFixed(2);
+            document.getElementById('co2-weekly-breakdown').textContent = co2Semanal.toFixed(2) + ' kg';
+            
+            document.getElementById('agua-weekly-value').textContent = Math.round(aguaSemanal);
+            document.getElementById('agua-weekly-breakdown').textContent = Math.round(aguaSemanal) + ' L';
+            
+            document.getElementById('energia-weekly-value').textContent = energiaSemanal.toFixed(2);
+            document.getElementById('energia-weekly-breakdown').textContent = energiaSemanal.toFixed(2) + ' kWh';
+            
+            document.getElementById('basura-weekly-value').textContent = basuraTotalSemanal.toFixed(2);
+            document.getElementById('basura-weekly-breakdown').textContent = basuraSinReciclarSemanal.toFixed(2) + ' kg';
+            
+            // Actualizar resultados en la interfaz - MENSUALES
+            document.getElementById('co2-monthly-value').textContent = co2Mensual.toFixed(2);
+            document.getElementById('co2-monthly-breakdown').textContent = co2Mensual.toFixed(2) + ' kg';
+            
+            document.getElementById('agua-monthly-value').textContent = Math.round(aguaMensual);
+            document.getElementById('agua-monthly-breakdown').textContent = Math.round(aguaMensual) + ' L';
+            
+            document.getElementById('energia-monthly-value').textContent = energiaMensual.toFixed(2);
+            document.getElementById('energia-monthly-breakdown').textContent = energiaMensual.toFixed(2) + ' kWh';
+            
+            document.getElementById('basura-monthly-value').textContent = basuraMensual.toFixed(2);
+            document.getElementById('basura-monthly-breakdown').textContent = basuraSinReciclarMensual.toFixed(2) + ' kg';
+            
+            // Actualizar porcentaje de reciclaje
+            document.getElementById('recycling-percentage').textContent = reciclaje + '%';
+            document.getElementById('waste-reduced').textContent = basuraRecicladaSemanal.toFixed(2) + ' kg/semana';
+            
+            // Actualizar sección de comparación
+            updateComparison();
+            
+            // Determinar nivel de impacto basado en valores semanales
+            let impactoLevel = 'low';
+            let impactoText = 'BAJO';
+            let impactoDesc = 'Tu impacto es bajo. ¡Sigue así!';
+            
+            const puntuacionTotal = (co2Semanal/10) + (aguaSemanal/500) + (basuraSinReciclarSemanal);
+            
+            if (puntuacionTotal > 30) {
+                impactoLevel = 'high';
+                impactoText = 'ALTO';
+                impactoDesc = 'Tu impacto es alto. ¡Necesitas tomar acción inmediata!';
+            } else if (puntuacionTotal > 15) {
+                impactoLevel = 'medium';
+                impactoText = 'MEDIO';
+                impactoDesc = 'Tu impacto es medio. Puedes mejorarlo siguiendo las recomendaciones.';
+            }
+            
+            const impactElement = document.getElementById('impact-level');
+            impactElement.className = 'impact-level ' + impactoLevel;
+            impactElement.textContent = impactoText;
+            
+            // Mostrar descripción del impacto
+            const impactoTotalDiv = document.getElementById('impacto-total');
+            if (!document.getElementById('impacto-desc')) {
+                const descElement = document.createElement('p');
+                descElement.id = 'impacto-desc';
+                descElement.style.marginTop = '10px';
+                descElement.style.color = '#ffd700';
+                descElement.style.fontStyle = 'italic';
+                impactoTotalDiv.appendChild(descElement);
+            }
+            document.getElementById('impacto-desc').textContent = impactoDesc;
+            
+            // Añadir animación a los resultados
+            const resultCards = document.querySelectorAll('.result-card');
+            resultCards.forEach(card => {
+                card.classList.remove('fade-in');
+                void card.offsetWidth; // Trigger reflow
+                card.classList.add('fade-in');
+            });
+            
+            // Generar recomendaciones personalizadas
+            generateRecommendations(co2Semanal, aguaSemanal, energiaSemanal, basuraSinReciclarSemanal, 
+                                   transporte, transportePrincipal, dieta, reciclaje);
+            
+            // Actualizar gráficas con nuevos datos
+            updateCharts(co2Semanal, energiaSemanal, aguaSemanal);
+        }
+        
+        // Función para actualizar la sección de comparación
+        function updateComparison() {
+            // CO₂
+            document.getElementById('comparison-co2-daily').textContent = resultados.co2.diario.toFixed(2) + ' kg';
+            document.getElementById('comparison-co2-weekly').textContent = resultados.co2.semanal.toFixed(2) + ' kg';
+            document.getElementById('comparison-co2-monthly').textContent = resultados.co2.mensual.toFixed(2) + ' kg';
+            
+            // Calcular diferencia entre mensual y semanal para CO₂
+            const co2Diff = resultados.co2.mensual - (resultados.co2.semanal * 4.3);
+            const co2DiffElement = document.getElementById('comparison-co2-diff');
+            if (Math.abs(co2Diff) < 0.1) {
+                co2DiffElement.textContent = "Equilibrado";
+                co2DiffElement.className = "comparison-difference";
+            } else if (co2Diff > 0) {
+                co2DiffElement.textContent = `+${co2Diff.toFixed(2)} kg vs proyección`;
+                co2DiffElement.className = "comparison-difference negative";
+            } else {
+                co2DiffElement.textContent = `${co2Diff.toFixed(2)} kg vs proyección`;
+                co2DiffElement.className = "comparison-difference positive";
+            }
+            
+            // Agua
+            document.getElementById('comparison-agua-daily').textContent = Math.round(resultados.agua.diario) + ' L';
+            document.getElementById('comparison-agua-weekly').textContent = Math.round(resultados.agua.semanal) + ' L';
+            document.getElementById('comparison-agua-monthly').textContent = Math.round(resultados.agua.mensual) + ' L';
+            
+            // Calcular diferencia entre mensual y semanal para agua
+            const aguaDiff = resultados.agua.mensual - (resultados.agua.semanal * 4.3);
+            const aguaDiffElement = document.getElementById('comparison-agua-diff');
+            if (Math.abs(aguaDiff) < 10) {
+                aguaDiffElement.textContent = "Equilibrado";
+                aguaDiffElement.className = "comparison-difference";
+            } else if (aguaDiff > 0) {
+                aguaDiffElement.textContent = `+${Math.round(aguaDiff)} L vs proyección`;
+                aguaDiffElement.className = "comparison-difference negative";
+            } else {
+                aguaDiffElement.textContent = `${Math.round(aguaDiff)} L vs proyección`;
+                aguaDiffElement.className = "comparison-difference positive";
+            }
+            
+            // Energía
+            document.getElementById('comparison-energia-daily').textContent = resultados.energia.diario.toFixed(2) + ' kWh';
+            document.getElementById('comparison-energia-weekly').textContent = resultados.energia.semanal.toFixed(2) + ' kWh';
+            document.getElementById('comparison-energia-monthly').textContent = resultados.energia.mensual.toFixed(2) + ' kWh';
+            
+            // Calcular diferencia entre mensual y semanal para energía
+            const energiaDiff = resultados.energia.mensual - (resultados.energia.semanal * 4.3);
+            const energiaDiffElement = document.getElementById('comparison-energia-diff');
+            if (Math.abs(energiaDiff) < 5) {
+                energiaDiffElement.textContent = "Equilibrado";
+                energiaDiffElement.className = "comparison-difference";
+            } else if (energiaDiff > 0) {
+                energiaDiffElement.textContent = `+${energiaDiff.toFixed(2)} kWh vs proyección`;
+                energiaDiffElement.className = "comparison-difference negative";
+            } else {
+                energiaDiffElement.textContent = `${energiaDiff.toFixed(2)} kWh vs proyección`;
+                energiaDiffElement.className = "comparison-difference positive";
+            }
+            
+            // Basura (sin reciclar)
+            document.getElementById('comparison-basura-daily').textContent = resultados.basuraSinReciclar.diario.toFixed(2) + ' kg';
+            document.getElementById('comparison-basura-weekly').textContent = resultados.basuraSinReciclar.semanal.toFixed(2) + ' kg';
+            document.getElementById('comparison-basura-monthly').textContent = resultados.basuraSinReciclar.mensual.toFixed(2) + ' kg';
+            
+            // Calcular diferencia entre mensual y semanal para basura
+            const basuraDiff = resultados.basuraSinReciclar.mensual - (resultados.basuraSinReciclar.semanal * 4.3);
+            const basuraDiffElement = document.getElementById('comparison-basura-diff');
+            if (Math.abs(basuraDiff) < 0.5) {
+                basuraDiffElement.textContent = "Equilibrado";
+                basuraDiffElement.className = "comparison-difference";
+            } else if (basuraDiff > 0) {
+                basuraDiffElement.textContent = `+${basuraDiff.toFixed(2)} kg vs proyección`;
+                basuraDiffElement.className = "comparison-difference negative";
+            } else {
+                basuraDiffElement.textContent = `${basuraDiff.toFixed(2)} kg vs proyección`;
+                basuraDiffElement.className = "comparison-difference positive";
+            }
+        }
+        
+        // Generar recomendaciones basadas en los resultados
+        function generateRecommendations(co2, agua, energia, basura, transporte, transportePrincipal, dieta, reciclaje) {
+            const recommendations = [];
+            const dietas = ["Carnívora", "Omnívora", "Vegetariana", "Vegana"];
+            
+            // Recomendaciones basadas en CO₂
+            if (co2 > 50) {
+                recommendations.push(`¡Alto impacto de CO₂ (${co2.toFixed(2)} kg/semana)! Considera reducir tus viajes en coche.`);
+            } else if (co2 > 30) {
+                recommendations.push(`Intenta compartir coche para reducir tus ${co2.toFixed(2)} kg de CO₂ semanales.`);
+            } else {
+                recommendations.push(`¡Buen trabajo con tus emisiones (${co2.toFixed(2)} kg/semana)! Sigue usando transporte sostenible.`);
+            }
+            
+            // Recomendaciones basadas en agua
+            if (agua > 3000) {
+                recommendations.push(`Tu consumo de agua es alto (${Math.round(agua/7)} L/día). Instala aireadores en grifos y reduce tiempo de ducha.`);
+            } else if (agua > 2000) {
+                recommendations.push(`Consumes ${Math.round(agua/7)} L de agua diarios. Revisa fugas y usa lavadoras con carga completa.`);
+            } else {
+                recommendations.push(`Consumo de agua responsable (${Math.round(agua/7)} L/día). Considera recolectar agua de lluvia.`);
+            }
+            
+            // Recomendaciones basadas en energía
+            if (energia > 250) {
+                recommendations.push(`Consumo energético alto (${energia.toFixed(2)} kWh/semana). Cambia a bombillas LED y desconecta dispositivos.`);
+            } else if (energia > 150) {
+                recommendations.push(`Consumo energético moderado (${energia.toFixed(2)} kWh/semana). Usa electrodomésticos eficientes A+++.`);
+            } else {
+                recommendations.push(`Consumo energético eficiente (${energia.toFixed(2)} kWh/semana). Considera paneles solares.`);
+            }
+            
+            // Recomendaciones basadas en basura y reciclaje
+            if (basura > 15) {
+                recommendations.push(`Generas mucha basura (${basura.toFixed(2)} kg/semana sin reciclar). Implementa compostaje y mejora tu reciclaje.`);
+            } else if (basura > 8) {
+                recommendations.push(`Generas ${basura.toFixed(2)} kg de basura semanales sin reciclar. Evita productos con empaques excesivos.`);
+            } else {
+                recommendations.push(`Excelente gestión de residuos (${basura.toFixed(2)} kg/semana sin reciclar). Sigue reduciendo, reutilizando y reciclando.`);
+            }
+            
+            // Recomendaciones basadas en reciclaje
+            if (reciclaje < 30) {
+                recommendations.push(`Tu porcentaje de reciclaje (${reciclaje}%) es bajo. Comienza separando vidrio, papel y plástico.`);
+            } else if (reciclaje < 60) {
+                recommendations.push(`Tu reciclaje (${reciclaje}%) es moderado. Puedes mejorar separando orgánicos y pilas.`);
+            } else {
+                recommendations.push(`¡Excelente reciclaje (${reciclaje}%)! Eres un ejemplo a seguir. Considera compostar residuos orgánicos.`);
+            }
+            
+            // Recomendaciones basadas en transporte
+            if (transporte > 300) {
+                recommendations.push(`Con ${transporte} km semanales, considera usar transporte público o bicicleta.`);
+            } else if (transporte > 100) {
+                recommendations.push(`Planifica tus viajes para reducir tus ${transporte} km semanales. Considera el teletrabajo.`);
+            }
+            
+            // Recomendaciones basadas en tipo de transporte principal
+            if (transportePrincipal >= 1.5) {
+                recommendations.push("Usas un transporte de alto impacto. Considera alternativas más sostenibles.");
+            } else if (transportePrincipal <= 0.8 && transportePrincipal > 0) {
+                recommendations.push("¡Buen trabajo usando transporte sostenible! Sigue así.");
+            } else if (transportePrincipal === 0.0) {
+                recommendations.push("Teletrabajo: ¡Excelente elección para reducir tu huella de carbono!");
+            }
+            
+            // Recomendaciones basadas en dieta
+            if (dieta === 1) {
+                recommendations.push(`Dieta ${dietas[dieta-1]}: Reduce carne roja e incorpora más vegetales para bajar tu huella.`);
+            } else if (dieta === 2) {
+                recommendations.push(`Dieta ${dietas[dieta-1]}: Añade un día sin carne a la semana para reducir tu impacto.`);
+            } else {
+                recommendations.push(`¡Excelente con dieta ${dietas[dieta-1]}! Sigue eligiendo productos locales y de temporada.`);
+            }
+            
+            // Recomendación específica de Chainsaw Man con hacha
+            recommendations.push("¡Como un hacha corta la madera, corta tus malos hábitos ambientales! Empieza por reducir un 10% tu impacto este mes.");
+            
+            // Actualizar la lista de recomendaciones
+            const recommendationsList = document.getElementById('recommendations-list');
+            recommendationsList.innerHTML = '';
+            
+            recommendations.forEach(recommendation => {
+                const li = document.createElement('li');
+                li.textContent = recommendation;
+                recommendationsList.appendChild(li);
+            });
+        }
+        
+        // Actualizar gráficas con nuevos datos (simulado)
+        function updateCharts(co2, energy, water) {
+            // Actualizar gráfica semanal (añadir nuevo día)
+            const lastCO2Value = weeklyData.datasets[0].data[weeklyData.datasets[0].data.length - 1];
+            const lastWaterValue = weeklyData.datasets[1].data[weeklyData.datasets[1].data.length - 1];
+            
+            // Simular variación diaria
+            const newCO2Value = Math.max(5, Math.min(25, lastCO2Value + (Math.random() * 6 - 3)));
+            const newWaterValue = Math.max(150, Math.min(300, lastWaterValue + (Math.random() * 40 - 20)));
+            
+            weeklyData.datasets[0].data.push(newCO2Value);
+            weeklyData.datasets[1].data.push(newWaterValue);
+            weeklyData.datasets[0].data.shift();
+            weeklyData.datasets[1].data.shift();
+            
+            // Actualizar gráfica mensual (añadir nuevo mes)
+            const monthlyCO2 = monthlyData.datasets[0].data;
+            const monthlyEnergy = monthlyData.datasets[1].data;
+            
+            // Simular reducción progresiva (con mejoras por acciones)
+            const improvement = 0.93 + (Math.random() * 0.06); // Entre 93% y 99% del mes anterior
+            const newCO2Monthly = Math.max(250, monthlyCO2[monthlyCO2.length - 1] * improvement);
+            const newEnergyMonthly = Math.max(200, monthlyEnergy[monthlyEnergy.length - 1] * improvement);
+            
+            monthlyCO2.push(newCO2Monthly);
+            monthlyEnergy.push(newEnergyMonthly);
+            
+            // Mantener solo los últimos 6 meses
+            if (monthlyCO2.length > 6) {
+                monthlyCO2.shift();
+                monthlyEnergy.shift();
+                monthlyData.labels.shift();
+                
+                // Añadir nuevo mes a las etiquetas
+                const months = ['Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+                monthlyData.labels.push(months[monthlyData.labels.length % 6]);
+            }
+            
+            // Actualizar gráficas
+            weeklyChart.update();
+            monthlyChart.update();
+        }
+        
+        // Reiniciar gráficas a valores iniciales
+        function resetCharts() {
+            // Restablecer datos semanales
+            weeklyData.datasets[0].data = [12, 19, 8, 15, 12, 18, 10];
+            weeklyData.datasets[1].data = [200, 180, 220, 190, 210, 250, 230];
+            
+            // Restablecer datos mensuales
+            monthlyData.datasets[0].data = [420, 380, 400, 350, 320, 300];
+            monthlyData.datasets[1].data = [320, 310, 300, 290, 280, 270];
+            monthlyData.labels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'];
+            
+            // Actualizar gráficas
+            weeklyChart.update();
+            monthlyChart.update();
+            
+            alert("¡Progreso reiniciado! Ahora puedes comenzar a registrar tu mejora desde cero.");
+        }
+    </script>
+</body>
+</html>
